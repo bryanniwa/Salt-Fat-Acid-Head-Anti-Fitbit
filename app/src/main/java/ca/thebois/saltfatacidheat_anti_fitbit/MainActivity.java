@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ProgressBar;
@@ -35,10 +36,12 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.List;
 
+import ca.thebois.saltfatacidheat_anti_fitbit.Model.Meal;
+import ca.thebois.saltfatacidheat_anti_fitbit.Model.MealManager;
+
 public class MainActivity extends AppCompatActivity implements
         ActivityCompat.OnRequestPermissionsResultCallback {
 
-    private boolean activityTrackingEnabled;
     private final boolean runningQOrLater =
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
     private List<ActivityTransition> activityTransitionList;
@@ -47,6 +50,10 @@ public class MainActivity extends AppCompatActivity implements
     private PendingIntent activityTransitionPendingIntent;
     private TransitionsReceiver transitionsReceiver;
     private final int PERMISSION_REQUEST_ACTIVITY_RECOGNITION = 45;
+
+    private ProgressBar caloriesBar;
+    private final int CALORIES_GOAL = 3000;
+    MealManager mealManager = MealManager.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,8 +68,6 @@ public class MainActivity extends AppCompatActivity implements
             startActivity(i);
         });
 
-        activityTrackingEnabled = false;
-
         populateTransitionList();
         Intent intent = new Intent(TRANSITIONS_RECEIVER_ACTION);
         activityTransitionPendingIntent =
@@ -76,6 +81,9 @@ public class MainActivity extends AppCompatActivity implements
         if (activityRecognitionPermissionApproved()) {
             enableActivityTransitions();
         }
+
+        caloriesBar = findViewById(R.id.progressBar_calories);
+        caloriesBar.setProgress(100);
     }
 
     private void getPermissionsIfNotGranted() {
@@ -147,7 +155,6 @@ public class MainActivity extends AppCompatActivity implements
                         .requestActivityTransitionUpdates(request, activityTransitionPendingIntent);
 
         task.addOnSuccessListener(aVoid -> {
-            activityTrackingEnabled = true;
             Toast.makeText(this, "enabled activity tracking", Toast.LENGTH_SHORT).show();
         });
 
@@ -207,5 +214,12 @@ public class MainActivity extends AppCompatActivity implements
     protected void onStop() {
         unregisterReceiver(transitionsReceiver);
         super.onStop();
+    }
+
+    @Override
+    protected void onResume() {
+        float caloriesPercentage = ((float) mealManager.getTotalCalories() / (float) CALORIES_GOAL);
+        caloriesBar.setProgress((int)(caloriesPercentage*100));
+        super.onResume();
     }
 }

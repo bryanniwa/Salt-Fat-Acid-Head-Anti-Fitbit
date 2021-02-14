@@ -1,11 +1,13 @@
 package ca.thebois.saltfatacidheat_anti_fitbit.Model;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class MealManager {
     private final List<Meal> meals = new ArrayList<>();
-    private int totalCalories;
+    private int totalCalories = 0;
 
     private static MealManager instance;
     private MealManager() {
@@ -20,6 +22,12 @@ public class MealManager {
 
     public void addMeal(Meal meal) {
         meals.add(meal);
+        totalCalories += meal.getCalories();
+        Log.i("MealManager", "added: " + meal.getCalories());
+    }
+
+    public int getTotalCalories() {
+        return totalCalories;
     }
 
     public List<Meal> getMeals() {
